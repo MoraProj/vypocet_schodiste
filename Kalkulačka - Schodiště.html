@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulačka schodiště - Liemannův vzorec</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            font-weight: 300;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .input-group:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.8em;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 6px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 8px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 8px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .result-card h3 {
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 1em;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            padding: 3px 0;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.85em;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #f8d7da 0%, #fdcbcf 100%);
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            border-left-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        .formula-info {
+            background: #e9ecef;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .formula {
+            font-size: 1em;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .primary-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .secondary-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tertiary-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .formula-info div:not(.formula) {
+            font-size: 0.75em;
+            line-height: 1.2;
+        }
+
+        .formula-info label {
+            font-size: 0.7em;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ Kalkulačka schodiště</h1>
+        
+        <div class="formula-info">
+            <div class="formula">Liemannův vzorec: 2h + b = <span id="formulaValue">630</span> mm</div>
+            <div>h = výška stupně, b = šířka stupně</div>
+            <div style="margin-top: 8px;">
+                <label style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <input type="checkbox" id="useRange" onchange="updateFormulaDisplay()" style="transform: scale(1.1);">
+                    Použít rozmezí 600-650 mm
+                </label>
+            </div>
+        </div>
+
+        <!-- Primární vstupy -->
+        <div class="primary-inputs">
+            <div class="input-group">
+                <label for="totalHeight">Výška schodiště (mm):</label>
+                <input type="number" id="totalHeight" placeholder="např. 2800" min="1" step="1">
+            </div>
+
+            <div class="input-group">
+                <label for="numberOfSteps">Počet stupňů:</label>
+                <input type="number" id="numberOfSteps" placeholder="např. 16" min="3" max="30" step="1">
+            </div>
+        </div>
+
+        <!-- Sekundární vstupy -->
+        <div class="secondary-inputs">
+            <div class="input-group">
+                <label for="stepHeight">Výška stupně (mm):</label>
+                <input type="number" id="stepHeight" placeholder="např. 170" min="100" max="250" step="1">
+            </div>
+
+            <div class="input-group">
+                <label for="stepWidth">Šířka stupně (mm):</label>
+                <input type="number" id="stepWidth" placeholder="např. 280" min="150" max="400" step="1">
+            </div>
+        </div>
+
+        <!-- Terciální vstupy -->
+        <div class="tertiary-inputs">
+            <div class="input-group">
+                <label for="runLength">Délka schodiště (mm):</label>
+                <input type="number" id="runLength" placeholder="např. 4000" min="1" step="1">
+            </div>
+        </div>
+
+        <button class="calculate-btn" onclick="calculateStairs()">Vypočítat schodiště</button>
+
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        function updateFormulaDisplay() {
+            const useRange = document.getElementById('useRange').checked;
+            const formulaValue = document.getElementById('formulaValue');
+            formulaValue.textContent = useRange ? '600-650' : '630';
+        }
+
+        function calculateStairs() {
+            const totalHeight = parseFloat(document.getElementById('totalHeight').value);
+            const stepHeight = parseFloat(document.getElementById('stepHeight').value) || null;
+            const stepWidth = parseFloat(document.getElementById('stepWidth').value) || null;
+            const numberOfStepsInput = parseFloat(document.getElementById('numberOfSteps').value) || null;
+            const runLength = parseFloat(document.getElementById('runLength').value) || null;
+            const useRange = document.getElementById('useRange').checked;
+
+            if (!totalHeight) {
+                alert('Zadejte celkovou výška schodiště!');
+                return;
+            }
+
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+
+            // Základní výpočty
+            let calculatedStepHeight = stepHeight;
+            let calculatedStepWidth = stepWidth;
+            let numberOfSteps = numberOfStepsInput;
+
+            // Určení počtu stupňů pokud není zadán
+            if (!numberOfSteps) {
+                if (stepHeight) {
+                    numberOfSteps = Math.ceil(totalHeight / stepHeight);
+                } else {
+                    // Optimální výška stupně je 170-180 mm
+                    const optimalHeight = 175;
+                    numberOfSteps = Math.round(totalHeight / optimalHeight);
+                }
+            }
+
+            // Přepočet výšky stupně podle skutečného počtu stupňů
+            calculatedStepHeight = totalHeight / numberOfSteps;
+
+            // Výpočet šířky stupně podle Liemannova vzorce
+            if (!stepWidth) {
+                calculatedStepWidth = 630 - (2 * calculatedStepHeight);
+            } else {
+                calculatedStepWidth = stepWidth;
+            }
+
+            // Pokud jsou zadány všechny hodnoty, použij je
+            if (stepHeight && stepWidth && numberOfStepsInput) {
+                calculatedStepHeight = stepHeight;
+                calculatedStepWidth = stepWidth;
+                numberOfSteps = numberOfStepsInput;
+            }
+
+            // Liemannův test
+            const liemannValue = 2 * calculatedStepHeight + calculatedStepWidth;
+            let isLiemannOk;
+            
+            if (useRange) {
+                isLiemannOk = liemannValue >= 600 && liemannValue <= 650;
+            } else {
+                // Přesná hodnota 630 bez tolerance
+                isLiemannOk = liemannValue === 630;
+            }
+
+            // Kontrola bezpečnostních standardů
+            const heightOk = calculatedStepHeight >= 150 && calculatedStepHeight <= 200;
+            const widthOk = calculatedStepWidth >= 250 && calculatedStepWidth <= 320;
+
+            // Celková délka
+            const totalRun = calculatedStepWidth * (numberOfSteps - 1);
+
+            // Výsledky - Hlavní parametry
+            const mainResults = `
+                <div class="result-card">
+                    <h3>📏 Hlavní parametry</h3>
+                    <div class="result-item">
+                        <span>Počet stupňů:</span>
+                        <span class="result-value">${numberOfSteps}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Výška stupně:</span>
+                        <span class="result-value">${calculatedStepHeight.toFixed(1)} mm</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Šířka stupně:</span>
+                        <span class="result-value">${calculatedStepWidth.toFixed(0)} mm</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Celková délka:</span>
+                        <span class="result-value">${totalRun.toFixed(0)} mm</span>
+                    </div>
+                </div>
+            `;
+
+            // Liemannův test
+            const liemannClass = isLiemannOk ? 'success' : 'warning';
+            const liemannResults = `
+                <div class="result-card ${liemannClass}">
+                    <h3>🔬 Liemannův test</h3>
+                    <div class="result-item">
+                        <span>2h + b =</span>
+                        <span class="result-value">${liemannValue.toFixed(1)} mm</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Cílová hodnota:</span>
+                        <span class="result-value">${useRange ? '600-650 mm' : '630 mm'}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Hodnocení:</span>
+                        <span class="result-value">${isLiemannOk ? '✅ Vyhovuje' : '⚠️ Nevyhovuje'}</span>
+                    </div>
+                    <div style="margin-top: 4px; font-size: 0.75em;">
+                        ${isLiemannOk ? 'Schodiště splňuje Liemannův vzorec' : 'Doporučuje se úprava rozměrů pro optimální pohodlí'}
+                        ${!useRange && !isLiemannOk ? `<br>Odchylka: ${(liemannValue - 630).toFixed(1)} mm` : ''}
+                    </div>
+                </div>
+            `;
+
+            // Bezpečnostní kontrola
+            const safetyClass = (heightOk && widthOk) ? 'success' : 'error';
+            const safetyResults = `
+                <div class="result-card ${safetyClass}">
+                    <h3>🛡️ Bezpečnostní kontrola</h3>
+                    <div class="result-item">
+                        <span>Výška stupně:</span>
+                        <span class="result-value">${heightOk ? '✅' : '❌'} ${calculatedStepHeight.toFixed(1)} mm</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Šířka stupně:</span>
+                        <span class="result-value">${widthOk ? '✅' : '❌'} ${calculatedStepWidth.toFixed(0)} mm</span>
+                    </div>
+                    <div style="margin-top: 4px; font-size: 0.75em;">
+                        Doporučené rozsahy: výška 150-200 mm, šířka 250-320 mm
+                    </div>
+                </div>
+            `;
+
+            // Kontrola dostupné délky
+            let spaceResults = '';
+            if (runLength) {
+                const spaceOk = totalRun <= runLength;
+                const spaceClass = spaceOk ? 'success' : 'error';
+                spaceResults = `
+                    <div class="result-card ${spaceClass}">
+                        <h3>📐 Kontrola prostoru</h3>
+                        <div class="result-item">
+                            <span>Potřebná délka:</span>
+                            <span class="result-value">${totalRun.toFixed(0)} mm</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Dostupná délka:</span>
+                            <span class="result-value">${runLength} mm</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Výsledek:</span>
+                            <span class="result-value">${spaceOk ? '✅ Vejde se' : '❌ Nevejde se'}</span>
+                        </div>
+                        ${!spaceOk ? `<div style="margin-top: 4px; font-size: 0.75em; color: #721c24;">Chybí ${(totalRun - runLength).toFixed(0)} mm</div>` : ''}
+                    </div>
+                `;
+            }
+
+            results.innerHTML = mainResults + liemannResults + safetyResults + spaceResults;
+        }
+
+        // Automatický výpočet při změně hodnot
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (document.getElementById('totalHeight').value) {
+                        setTimeout(calculateStairs, 300);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
